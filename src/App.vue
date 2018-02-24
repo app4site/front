@@ -1,15 +1,13 @@
-<template>
-  <div id="app">
-    <div class="bg"></div>
-    <main-block msg="Welcome to Your Vue.js App"/>
-  </div>
+<template lang="pug">
+  #app
+    .bg
+    main-block
 </template>
 
 <script>
 import MainBlock from './components/MainBlock.vue'
 
 export default {
-  name: 'app',
   components: {
     MainBlock
   },
@@ -18,6 +16,10 @@ export default {
 
 <style lang="stylus">
 @import url(https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i&subset=cyrillic)
+@import url('~html5-device-mockups/dist/device-mockups.min.css')
+
+*
+  box-sizing border-box
 
 body, html, #app
   height 100%
