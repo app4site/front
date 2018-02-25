@@ -1,5 +1,5 @@
 <template lang="pug">
-  .root
+  .root(':class'="{spinner}")
     input(
       placeholder=" "
       ':class'="{error}"
@@ -21,6 +21,7 @@
       placeholder: String,
       autofocus: Boolean,
       alwaysFocus: Boolean,
+      spinner: Boolean,
     },
     methods: {
       blur(event) {
@@ -32,9 +33,31 @@
 </script>
 
 <style scoped lang="stylus">
+apple = #4caf50
+
 .root
   display inline-block
   position relative
+  margin-top 30px
+
+@keyframes spin
+  0%
+    transform: rotate(0deg)
+  100%
+    transform: rotate(360deg)
+
+.spinner:after
+  position absolute
+  top 0
+  right 0
+  height 0.8em
+  width 0.8em
+  content ' '
+  border-radius 100%
+  border .25rem solid rgba(apple, 0.2)
+  border-top-color apple;
+  animation spin 1500ms infinite linear
+  transform translateZ(0)
 
 input
   height 100%
@@ -52,7 +75,7 @@ input
     left 0
     width 0
     height 2px
-    background-color #4caf50
+    background-color apple
     transition 0.4s
 
   &:focus ~ .border
@@ -77,7 +100,7 @@ input
     height 15px
     bottom 100%
     font-size 12px
-    color #4caf50
+    color apple
     transition 0.3s
 
   &.error

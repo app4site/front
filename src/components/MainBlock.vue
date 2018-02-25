@@ -1,17 +1,27 @@
 <template lang="pug">
   .root(':class'="{mobile}")
     .desc
-      h1.
-        Создай приложение для своего сайта
-      cool-input.inp(placeholder="Адрес сайта" alwaysFocus ':error'="error" v-model="site" '@submit'="process")
+      h1 Создай приложение для своего сайта
+      cool-input.inp(
+        placeholder="Адрес сайта"
+        ':alwaysFocus'="!canProcess"
+        v-model="site"
+        ':error'="error"
+        ':spinner'="wait"
+        '@submit'="process"
+      )
+      transition(name="slide-fade")
+        .additional(v-if="canProcess")
+          cool-input.inp(placeholder="Название приложения" v-model="appName")
+          cool-input.inp(placeholder="Иконка" v-model="icon")
     .preview
       .device-wrapper
         .device(data-device="Pixel" data-orientation="portrait" data-color="black")
           .screen
             .status-bar
-            .app
+            .app(':class'="{sample: !canProcess}")
               .icon
-              .title Cool app!
+              .title {{appName || 'Cool App!'}}
 
 </template>
 
@@ -22,23 +32,37 @@ export default {
   data: () => ({
     site: '',
     error: '',
+    wait: false,
     canProcess: false,
+    appName: '',
+    icon: ''
   }),
   components: {
     CoolInput
   },
   methods: {
     process() {
+      this.canProcess = false
       this.error = ''
+      if (!/^https?:\/\//.test(this.site))
+        this.site = 'https://' + this.site
       try {
-        if (!/https?:/.test(this.site))
-          this.site = 'https://' + this.site
         new URL(this.site)
       } catch {
-        this.error = 'Неправильный адрес!'
+        this.error = 'Неправильный адрес сайта!'
         return
       }
-      this.canProcess = true
+      this.wait = true
+      fetch(this.site, {mode: 'no-cors'})
+        .then(r => {
+          r.text().then(t=>window.t=t)
+          this.appName = 'AppName'
+          this.canProcess = true
+        })
+        .catch(() =>
+          this.error = 'Нет такого сайта!'
+        )
+        .then(() => this.wait = false)
     }
   },
 }
@@ -62,11 +86,49 @@ export default {
   padding-right 20px
   h1
     font-size 38px
+    margin 0
 
   .inp
-    height 40px
     width 100%
     font-size 26px
+
+.app
+  display flex
+  flex-direction column
+  align-items center
+  &.sample
+    filter blur(2px)
+  & .icon
+    position relative
+    width 45px
+    height 45px
+    //border-radius 10px
+    &:after
+      content ' '
+      position: absolute
+      top 0
+      left 0
+      right 0
+      bottom 0
+      background-image url(../assets/icon.png)
+      background-size contain
+
+  .title
+    margin-top 5px
+    font-size 10px
+    font-weight 600
+    color whitesmoke
+
+.slide-fade-enter-active
+.slide-fade-leave-active
+  transition all 0.5s ease-out
+
+.slide-fade-enter, .slide-fade-leave-to
+  max-height 0
+  opacity 0
+
+.slide-fade-enter-to, .slide-fade-leave
+  max-height 150px
 
 .preview
   flex 1
@@ -79,34 +141,6 @@ export default {
     display flex
     align-items center
     justify-content center
-
-  .app
-    display flex
-    flex-direction column
-    align-items center
-    filter blur(2px)
-    & .icon
-      position relative
-      width 45px
-      height 45px
-      //border-radius 10px
-      &:after
-        content ' '
-        position: absolute
-        top 0
-        left 0
-        right 0
-        bottom 0
-        background-image url(../assets/icon.png)
-        background-size contain
-
-    .title
-      margin-top 5px
-      font-size 10px
-      font-weight 600
-      color whitesmoke
-
-
   .status-bar
     background-size contain
     background-repeat no-repeat
@@ -116,6 +150,4 @@ export default {
     right 0
     height 30px
     width 65px
-
-
 </style>
