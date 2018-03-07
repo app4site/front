@@ -32,7 +32,10 @@
     "extends": [
       "plugin:vue/essential",
       "eslint:recommended"
-    ]
+    ],
+    "globals": {
+      "process": false
+    }
   },
   "postcss": {
     "plugins": {

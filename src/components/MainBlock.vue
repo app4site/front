@@ -53,10 +53,11 @@ export default {
         return
       }
       this.wait = true
-      fetch(this.site, {mode: 'no-cors'})
-        .then(r => {
-          r.text().then(t=>window.t=t)
-          this.appName = 'AppName'
+      fetch(process.env.VUE_APP_BACKEND_URL + '/api/scrape?url=' + encodeURIComponent(this.site))
+        .then(t => t.text())
+        .then(text => new DOMParser().parseFromString(JSON.parse(text).resp, 'text/html'))
+        .then(doc => {
+          this.appName = doc.title
           this.canProcess = true
         })
         .catch(() =>
