@@ -1,13 +1,18 @@
 <template lang="pug">
   #app
     .bg
-    main-block
+    main-block(:back-url="backUrl")
 </template>
 
 <script>
 import MainBlock from './components/MainBlock.vue'
 
 export default {
+  data() {
+    return {
+      backUrl: process.env.VUE_APP_BACKEND_URL,
+    }
+  },
   components: {
     MainBlock
   },
@@ -30,6 +35,10 @@ body, html, #app
 body
   font-family 'Roboto', sans-serif
   text-align center
+
+.simple-svg-wrapper
+  display inline-block
+  vertical-align middle
 
 .bg
   z-index -1000

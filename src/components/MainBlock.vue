@@ -1,6 +1,6 @@
 <template lang="pug">
   .root(':class'="{mobile}")
-    .desc
+    form.desc(@submit.prevent="")
       h1 Создай приложение для своего сайта
       cool-input.inp(
         placeholder="Адрес сайта"
@@ -13,34 +13,65 @@
       transition(name="slide-fade")
         .additional(v-if="canProcess")
           cool-input.inp(placeholder="Название приложения" v-model="appName")
-          cool-input.inp(placeholder="Иконка" v-model="icon")
+          input#file.file(type="file" name="file" '@change'="onFileChange")
+          label(for="file")
+            simple-svg(:filepath="uploadIcon" fill="currentColor" stroke="currentColor")
+            span Загрузить другую иконку
+          button.submit(type="submit") Создать приложение!
     .preview
       .device-wrapper
         .device(data-device="Pixel" data-orientation="portrait" data-color="black")
           .screen
             .status-bar
-            .app(':class'="{sample: !canProcess}")
+            .app(':class'="{sample: !canProcess}" '@click'="createApp")
               .icon
+                .image(
+                  ':class'="{placeholder: !icon}"
+                  ':style'="{backgroundImage: icon && `url(${icon})`}"
+                )
               .title {{appName || 'Cool App!'}}
 
 </template>
 
 <script>
 import CoolInput from './CoolInput'
-//(v-if="canProcess" ':src'="site")
+import uploadIcon from '../assets/upload.svg';
+
 export default {
+  props: {
+    backUrl: String,
+  },
   data: () => ({
     site: '',
     error: '',
     wait: false,
     canProcess: false,
     appName: '',
-    icon: ''
+    icon: '',
+    uploadIcon,
   }),
   components: {
     CoolInput
   },
   methods: {
+    createApp() {
+
+    },
+
+    onFileChange(e) {
+      let files = e.target.files || e.dataTransfer.files
+      if (!files.length)
+        return
+      this.createImage(files[0])
+    },
+
+    createImage(file) {
+      let reader  = new FileReader()
+      reader.onloadend = () =>
+        this.icon = reader.result
+      reader.readAsDataURL(file)
+    },
+
     process() {
       this.canProcess = false
       this.error = ''
@@ -53,23 +84,33 @@ export default {
         return
       }
       this.wait = true
-      fetch(process.env.VUE_APP_BACKEND_URL + '/api/scrape?url=' + encodeURIComponent(this.site))
+      fetch(this.backUrl + '/api/scrape?url=' + encodeURIComponent(this.site))
         .then(t => t.text())
         .then(text => new DOMParser().parseFromString(JSON.parse(text).resp, 'text/html'))
         .then(doc => {
           this.appName = doc.title
+          let link = doc.querySelector("link[rel*='icon']")
+          this.icon = new URL(link
+              ? link.getAttribute('href')
+              : '/favicon.ico'
+            , new URL(this.site).origin)
           this.canProcess = true
         })
         .catch(() =>
           this.error = 'Нет такого сайта!'
         )
-        .then(() => this.wait = false)
+        .then(() => {
+          this.wait = false
+          document.activeElement.blur()
+        })
     }
   },
 }
 </script>
 
 <style scoped lang="stylus">
+apple = #4caf50
+
 .root
   width 800px
   height 100%
@@ -93,10 +134,56 @@ export default {
     width 100%
     font-size 26px
 
+  .file
+    width 0.1px
+    height 0.1px
+    opacity 0
+    overflow hidden
+    position absolute
+    z-index -1
+
+    & + label
+      margin-top 25px
+      font-size 1.25em
+      font-weight 500
+      display inline-block
+      cursor pointer
+      color: apple
+      border: 2px solid currentColor
+      padding 0.625rem 1.25rem
+      width 100%
+      text-align center
+
+      & .simple-svg-wrapper
+        width 1em
+        height 1em
+        margin-top -0.25em
+        margin-right 0.4em
+
+    & + label:hover
+      color #04af00
+
+  .submit
+    margin-top 40px
+    font-size 1.25em
+    font-weight 800
+    display inline-block
+    cursor pointer
+    color: white
+    border: 2px solid apple
+    padding 0.625rem 1.25rem
+    background-color apple
+    width 100%
+    outline none
+    &:hover
+      border-color #04af00
+      background-color #04af00
+
 .app
   display flex
   flex-direction column
   align-items center
+  cursor pointer
   &.sample
     filter blur(2px)
   & .icon
@@ -104,15 +191,15 @@ export default {
     width 45px
     height 45px
     //border-radius 10px
-    &:after
-      content ' '
+    & .image
       position: absolute
       top 0
       left 0
       right 0
       bottom 0
-      background-image url(../assets/icon.png)
       background-size contain
+      &.placeholder
+        background-image url(../assets/icon.png)
 
   .title
     margin-top 5px
