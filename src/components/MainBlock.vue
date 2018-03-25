@@ -169,6 +169,7 @@ golder = #fff900
     margin 0
   *
     box-sizing border-box
+    font-weight inherit
 
 .desc
   width 50%
