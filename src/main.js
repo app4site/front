@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import App from './App.vue'
+import MainBlock from './components/MainBlock'
 import VueSimpleSVG from 'vue-simple-svg'
 
 Vue.config.productionTip = false
@@ -21,7 +21,18 @@ Vue.mixin({
   }
 })
 
-new Vue({
-  render: h => h(App),
-}).$mount('#app')
+let app = new Vue({
+  render: function(h) {
+    return h(MainBlock, {
+      props: {
+        backUrl: 'https://app4site.herokuapp.com'
+        //backUrl: 'http://localhost:8000'
+      }
+    })
+  }
+})
 
+if (process.env.NODE_ENV !== 'production')
+  window.MainBlock = app
+
+export default app

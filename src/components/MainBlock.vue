@@ -1,29 +1,38 @@
 <template lang="pug">
   .root(':class'="{mobile}")
-    form.desc(@submit.prevent="")
-      h1 Создай приложение для своего сайта
+    .desc
+      h1 {{generating ? 'Подожди пару минут, приложение создается' : 'Создай приложение для своего сайта'}}
       cool-input.inp(
         placeholder="Адрес сайта"
-        ':alwaysFocus'="!canProcess"
         v-model="site"
+        ':readonly'="wait"
+        ':alwaysFocus'="!canProcess"
         ':error'="error"
         ':spinner'="wait"
         '@submit'="process"
       )
+      button.submit(
+        v-if = "!wait && !canProcess"
+        ':style'="{visibility: site ? 'visible' : 'hidden'}"
+        '@click'="process")
+        | Продолжить
       transition(name="slide-fade")
-        .additional(v-if="canProcess")
+        .additional(v-if="!wait && canProcess")
           cool-input.inp(placeholder="Название приложения" v-model="appName")
-          input#file.file(type="file" name="file" '@change'="onFileChange")
+          input#file.file(type="file" name="icon" '@change'="onFileChange")
           label(for="file")
             simple-svg(:filepath="uploadIcon" fill="currentColor" stroke="currentColor")
             span Загрузить другую иконку
-          button.submit(type="submit") Создать приложение!
+          button.submit('@click'="createApp") Создать приложение!
+      transition(name="slide-fade")
+        a(v-if="apkUrl" download ':href'="apkUrl")
+          button.submit() Скачать приложение
     .preview
       .device-wrapper
         .device(data-device="Pixel" data-orientation="portrait" data-color="black")
           .screen
             .status-bar
-            .app(':class'="{sample: !canProcess}" '@click'="createApp")
+            .app(':class'="{sample: !canProcess && !generating && !apkUrl}")
               .icon
                 .image(
                   ':class'="{placeholder: !icon}"
@@ -35,7 +44,7 @@
 
 <script>
 import CoolInput from './CoolInput'
-import uploadIcon from '../assets/upload.svg';
+import uploadIcon from '../assets/upload.svg'
 
 export default {
   props: {
@@ -47,34 +56,71 @@ export default {
     wait: false,
     canProcess: false,
     appName: '',
+    appPk: null,
     icon: '',
     uploadIcon,
+    generating: false,
+    apkUrl: '',
   }),
   components: {
     CoolInput
   },
   methods: {
     createApp() {
+      this.wait = true
+      this.generating = true
+      let form = new FormData()
+      form.append('name', this.appName)
+      form.append('color', '#FFFFFF')
+      fetch(this.backUrl + `/api/app/${this.appPk}`, { method: 'POST', body: form })
+        .then(() => this.check())
+        .catch(() =>
+          this.error = 'Неверные данные!'
+        )
+        .then(url => {
+          this.wait = false
+          this.generating = false
+          this.canProcess = false
+          this.apkUrl = url
+        })
+    },
 
+    check() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          fetch(this.backUrl + `/api/app/${this.appPk}`)
+            .then(t => t.json())
+            .then(json => {
+              if (json.app === 200)
+                resolve(json.file_url)
+              else
+                resolve(this.check())
+            })
+        }, 1500)
+      })
     },
 
     onFileChange(e) {
       let files = e.target.files || e.dataTransfer.files
       if (!files.length)
         return
-      this.createImage(files[0])
-    },
+      const icon = files[0]
 
-    createImage(file) {
-      let reader  = new FileReader()
-      reader.onloadend = () =>
-        this.icon = reader.result
-      reader.readAsDataURL(file)
+      let form = new FormData()
+      form.append('icon', icon)
+      fetch(this.backUrl + `/api/app/${this.appPk}/icon`, { method: 'POST', body: form })
+        .then(t => t.json())
+        .then(json => {
+          if (json.error)
+            this.error = "Неправильная иконка!"
+          this.icon = json.icon
+        })
     },
 
     process() {
       this.canProcess = false
       this.error = ''
+      this.apkUrl = ''
       if (!/^https?:\/\//.test(this.site))
         this.site = 'https://' + this.site
       try {
@@ -84,24 +130,21 @@ export default {
         return
       }
       this.wait = true
-      fetch(this.backUrl + '/api/scrape?url=' + encodeURIComponent(this.site))
-        .then(t => t.text())
-        .then(text => new DOMParser().parseFromString(JSON.parse(text).resp, 'text/html'))
-        .then(doc => {
-          this.appName = doc.title
-          let link = doc.querySelector("link[rel*='icon']")
-          this.icon = new URL(link
-              ? link.getAttribute('href')
-              : '/favicon.ico'
-            , new URL(this.site).origin)
+
+      fetch(this.backUrl + '/api/scrape', {method: 'POST', body: this.site})
+        .then(t => t.json())
+        .then(json => {
+          this.appPk = json.id
+          this.appName = json.name
+          this.icon = json.icon
           this.canProcess = true
+          document.activeElement.blur()
         })
         .catch(() =>
           this.error = 'Нет такого сайта!'
         )
         .then(() => {
           this.wait = false
-          document.activeElement.blur()
         })
     }
   },
@@ -109,7 +152,12 @@ export default {
 </script>
 
 <style scoped lang="stylus">
+@import url('~html5-device-mockups/dist/device-mockups.min.css')
 apple = #4caf50
+
+.simple-svg-wrapper
+  display inline-block
+  vertical-align middle
 
 .root
   width 800px
@@ -166,7 +214,6 @@ apple = #4caf50
   .submit
     margin-top 40px
     font-size 1.25em
-    font-weight 800
     display inline-block
     cursor pointer
     color: white
@@ -175,6 +222,8 @@ apple = #4caf50
     background-color apple
     width 100%
     outline none
+    text-align center
+    text-decoration none
     &:hover
       border-color #04af00
       background-color #04af00
@@ -183,7 +232,7 @@ apple = #4caf50
   display flex
   flex-direction column
   align-items center
-  cursor pointer
+  user-select none
   &.sample
     filter blur(2px)
   & .icon
@@ -198,6 +247,7 @@ apple = #4caf50
       right 0
       bottom 0
       background-size contain
+      background-repeat no-repeat
       &.placeholder
         background-image url(../assets/icon.png)
 

@@ -1,12 +1,13 @@
 <template lang="pug">
-  .root(':class'="{spinner}")
+  .cool-input(':class'="{spinner}")
     input(
       placeholder=" "
       ':class'="{error}"
       ':autofocus'="alwaysFocus || autofocus"
       ':value'="value"
+      ':readonly'="readonly"
       '@input'="$emit('input', $event.target.value)"
-      '@keyup.enter'="$emit('submit')"
+      '@keyup.enter'="!readonly && $emit('submit')"
       '@blur'="blur"
     )
     label {{error || placeholder}}
@@ -22,6 +23,7 @@
       autofocus: Boolean,
       alwaysFocus: Boolean,
       spinner: Boolean,
+      readonly: Boolean,
     },
     methods: {
       blur(event) {
@@ -35,7 +37,7 @@
 <style scoped lang="stylus">
 apple = #4caf50
 
-.root
+.cool-input
   display inline-block
   position relative
   margin-top 30px
@@ -60,7 +62,6 @@ apple = #4caf50
   transform translateZ(0)
 
 input
-  height 100%
   width 100%
   outline none
   border 0
