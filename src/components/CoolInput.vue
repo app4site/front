@@ -35,12 +35,13 @@
 </script>
 
 <style scoped lang="stylus">
-apple = #4caf50
+gold = #ffd014
 
 .cool-input
   display inline-block
   position relative
   margin-top 30px
+  color gold
 
 @keyframes spin
   0%
@@ -56,8 +57,8 @@ apple = #4caf50
   width 0.8em
   content ' '
   border-radius 100%
-  border .25rem solid rgba(apple, 0.2)
-  border-top-color apple;
+  border .25rem solid rgba(gold, 0.2)
+  border-top-color gold;
   animation spin 1500ms infinite linear
   transform translateZ(0)
 
@@ -69,6 +70,7 @@ input
   border-bottom 1px solid #ccc
   background-color transparent
   font-size inherit
+  color currentColor
 
   ~ .border
     position absolute
@@ -76,7 +78,7 @@ input
     left 0
     width 0
     height 2px
-    background-color apple
+    background-color gold
     transition 0.4s
 
   &:focus ~ .border
@@ -101,7 +103,7 @@ input
     height 15px
     bottom 100%
     font-size 12px
-    color apple
+    color gold
     transition 0.3s
 
   &.error

@@ -5,14 +5,14 @@
       cool-input.inp(
         placeholder="Адрес сайта"
         v-model="site"
+        autofocus
         ':readonly'="wait"
-        ':alwaysFocus'="!canProcess"
         ':error'="error"
         ':spinner'="wait"
         '@submit'="process"
       )
       button.submit(
-        v-if = "!wait && !canProcess"
+        v-if = "!wait && !canProcess && !apkUrl"
         ':style'="{visibility: site ? 'visible' : 'hidden'}"
         '@click'="process")
         | Продолжить
@@ -21,7 +21,6 @@
           cool-input.inp(placeholder="Название приложения" v-model="appName")
           input#file.file(type="file" name="icon" '@change'="onFileChange")
           label(for="file")
-            simple-svg(:filepath="uploadIcon" fill="currentColor" stroke="currentColor")
             span Загрузить другую иконку
           button.submit('@click'="createApp") Создать приложение!
       transition(name="slide-fade")
@@ -44,7 +43,6 @@
 
 <script>
 import CoolInput from './CoolInput'
-import uploadIcon from '../assets/upload.svg'
 
 export default {
   props: {
@@ -58,7 +56,6 @@ export default {
     appName: '',
     appPk: null,
     icon: '',
-    uploadIcon,
     generating: false,
     apkUrl: '',
   }),
@@ -153,7 +150,8 @@ export default {
 
 <style scoped lang="stylus">
 @import url('~html5-device-mockups/dist/device-mockups.min.css')
-apple = #4caf50
+gold = #ffd014
+golder = #fff900
 
 .simple-svg-wrapper
   display inline-block
@@ -169,6 +167,8 @@ apple = #4caf50
   &.mobile
     width 100%
     margin 0
+  *
+    box-sizing border-box
 
 .desc
   width 50%
@@ -191,13 +191,13 @@ apple = #4caf50
     z-index -1
 
     & + label
+      border-radius 5px
       margin-top 25px
       font-size 1.25em
-      font-weight 500
       display inline-block
       cursor pointer
-      color: apple
-      border: 2px solid currentColor
+      color: gold
+      border: 1px solid currentColor
       padding 0.625rem 1.25rem
       width 100%
       text-align center
@@ -209,24 +209,25 @@ apple = #4caf50
         margin-right 0.4em
 
     & + label:hover
-      color #04af00
+      color golder
 
   .submit
+    border-radius 5px
     margin-top 40px
     font-size 1.25em
     display inline-block
     cursor pointer
-    color: white
-    border: 2px solid apple
+    color: black
+    border: 2px solid gold
     padding 0.625rem 1.25rem
-    background-color apple
+    background-color gold
     width 100%
     outline none
     text-align center
     text-decoration none
     &:hover
-      border-color #04af00
-      background-color #04af00
+      border-color golder
+      background-color golder
 
 .app
   display flex
