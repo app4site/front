@@ -1,7 +1,8 @@
 <template lang="pug">
   .root(':class'="{mobile}")
     .desc
-      h1 {{generating ? 'Подожди пару минут, приложение создается' : 'Создай приложение для своего сайта'}}
+      h1(v-if="generating") Подожди пару минут, приложение создается
+      h1(v-else) Преврати свой сайт<br/>в приложение
       cool-input.inp(
         placeholder="Адрес сайта"
         v-model="site"
@@ -176,7 +177,6 @@ golder = #fff900
   text-align left
   padding-right 20px
   h1
-    font-size 38px
     margin 0
 
   .inp

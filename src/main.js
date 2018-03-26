@@ -4,18 +4,20 @@ import MainBlock from './components/MainBlock'
 Vue.config.productionTip = false
 
 
-function isMobile() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+function detectMobile() {
+  return typeof window.isMobile === 'undefined'
+    ? /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    : window.isMobile
 }
 
 Vue.mixin({
   data() {
     return {
-      mobile: isMobile(),
+      mobile: detectMobile(),
     }
   },
   mounted() {
-    window.addEventListener('resize', () => this.mobile = isMobile())
+    window.addEventListener('resize', () => this.mobile = detectMobile())
   }
 })
 
