@@ -19,7 +19,7 @@
         | Продолжить
       transition(name="slide-fade")
         .additional(v-if="!wait && canProcess")
-          cool-input.inp(placeholder="Название приложения" v-model="appName")
+          cool-input.inp(placeholder="Название приложения" v-model="appName" :max-len="30")
           input#file.file(type="file" name="icon" '@change'="onFileChange")
           label(for="file")
             span Загрузить другую иконку

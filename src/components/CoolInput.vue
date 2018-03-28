@@ -6,7 +6,7 @@
       ':autofocus'="alwaysFocus || autofocus"
       ':value'="value"
       ':readonly'="readonly"
-      '@input'="$emit('input', $event.target.value)"
+      '@input'="$emit('input', $event.target.value.slice(0, maxLen || Infinity))"
       '@keyup.enter'="!readonly && $emit('submit')"
       '@blur'="blur"
     )
@@ -24,6 +24,7 @@
       alwaysFocus: Boolean,
       spinner: Boolean,
       readonly: Boolean,
+      maxLen: Number,
     },
     methods: {
       blur(event) {
