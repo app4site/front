@@ -74,6 +74,7 @@ input
   font-size inherit
   color currentColor
   margin 0
+  text-align inherit
 
   ~ .border
     position absolute

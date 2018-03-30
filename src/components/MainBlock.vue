@@ -1,49 +1,43 @@
 <template lang="pug">
-  .root(':class'="{mobile}")
-    .desc
-      h1(v-if="generating") Подожди пару минут, приложение создается
-      h1(v-else) Преврати свой сайт<br/>в приложение
-      cool-input.inp(
-        placeholder="Адрес сайта"
-        v-model="site"
-        autofocus
-        ':readonly'="wait"
-        ':error'="error"
-        ':spinner'="wait"
-        '@submit'="process"
-      )
-      button.submit(
-        v-if = "!wait && !canProcess && !apkUrl"
-        ':style'="{visibility: site ? 'visible' : 'hidden'}"
-        '@click'="process")
-        | Продолжить
-      transition(name="slide-fade")
-        .additional(v-if="!wait && canProcess")
-          cool-input.inp(placeholder="Название приложения" v-model="appName" :max-len="30")
-          input#file.file(type="file" name="icon" '@change'="onFileChange")
-          label(for="file")
-            span Загрузить другую иконку
-          button.submit('@click'="createApp") Создать приложение!
-      transition(name="slide-fade")
-        a(v-if="apkUrl" download ':href'="apkUrl")
-          button.submit() Скачать приложение
-    .preview
-      .device-wrapper
-        .device(data-device="Pixel" data-orientation="portrait" data-color="black")
-          .screen
-            .status-bar
-            .app(':class'="{sample: !canProcess && !generating && !apkUrl}")
-              .icon
-                .image(
-                  ':class'="{placeholder: !icon}"
-                  ':style'="{backgroundImage: icon && `url(${icon})`}"
-                )
-              .title {{appName || 'Cool App!'}}
-
+.root(':class'="{mobile}")
+  .desc
+    h1(v-if="apkUrl") Готово!
+    h1(v-else-if="generating") Пару минут, приложение создается...
+    m-app(v-else-if="mobile && !wait && canProcess" ':blur'="blur" :icon="icon" :app-name="appName")
+    h1(v-else) Преврати свой сайт<br/>в приложение
+    cool-input.inp(
+      placeholder="Адрес сайта"
+      v-model="site"
+      ':autofocus'="!mobile"
+      ':readonly'="wait"
+      ':error'="error"
+      ':spinner'="wait"
+      '@submit'="process"
+    )
+    my-button(
+      primary
+      v-if = "!wait && !canProcess && !apkUrl"
+      ':style'="{visibility: site ? 'visible' : 'hidden'}"
+      '@click'="process"
+    )
+      | Продолжить
+    transition(name="slide-fade")
+      .additional(v-if="!wait && canProcess")
+        cool-input.inp(placeholder="Название приложения" v-model="appName" :max-len="30")
+        my-button(file name="icon" '@change'="onFileChange") Загрузить другую иконку
+        my-button(primary '@click'="createApp") Создать приложение!
+    transition(name="slide-fade")
+      a(v-if="apkUrl" download ':href'="apkUrl")
+        my-button(primary) Скачать приложение
+  my-phone.preview(v-if="!mobile")
+    m-app(':blur'="blur" :icon="icon" :app-name="appName")
 </template>
 
 <script>
 import CoolInput from './CoolInput'
+import MyPhone from './MyPhone'
+import MyButton from './MyButton'
+import MApp from './MApp'
 
 export default {
   props: {
@@ -62,10 +56,18 @@ export default {
     waitLoad: null,
   }),
   components: {
-    CoolInput
+    CoolInput,
+    MyPhone,
+    MyButton,
+    MApp,
   },
   created() {
     this.waitLoad = new Promise(this.preload)
+  },
+  computed: {
+    blur() {
+      return !this.canProcess && !this.generating && !this.apkUrl
+    }
   },
   methods: {
     preload(resolve) {
@@ -162,14 +164,6 @@ export default {
 </script>
 
 <style scoped lang="stylus">
-@import url('~html5-device-mockups/dist/device-mockups.min.css')
-gold = #ffd014
-golder = #fff900
-
-.simple-svg-wrapper
-  display inline-block
-  vertical-align middle
-
 .root
   width 800px
   height 100%
@@ -180,14 +174,13 @@ golder = #fff900
   &.mobile
     width 100%
     margin 0
+    font-size 15px
+    & h1
+      font-size 30px
   *
     box-sizing border-box
     font-weight inherit
 
-.desc
-  width 50%
-  text-align left
-  padding-right 20px
   h1
     margin 0
 
@@ -195,81 +188,17 @@ golder = #fff900
     width 100%
     font-size 26px
 
-  .file
-    width 0.1px
-    height 0.1px
-    opacity 0
-    overflow hidden
-    position absolute
-    z-index -1
+  &:not(.mobile) .desc
+    width 50%
+    text-align left
+    padding-right 20px
 
-    & + label
-      border-radius 5px
-      margin-top 25px
-      font-size 1.25em
-      display inline-block
-      cursor pointer
-      color: gold
-      border: 1px solid currentColor
-      padding 0.625rem 1.25rem
-      width 100%
-      text-align center
-
-      & .simple-svg-wrapper
-        width 1em
-        height 1em
-        margin-top -0.25em
-        margin-right 0.4em
-
-    & + label:hover
-      color golder
-
-  .submit
-    border-radius 5px
-    margin-top 40px
-    font-size 1.25em
-    display inline-block
-    cursor pointer
-    color: black
-    border: 2px solid gold
-    padding 0.625rem 1.25rem
-    background-color gold
-    width 100%
-    outline none
+  &.mobile .desc
     text-align center
-    text-decoration none
-    &:hover
-      border-color golder
-      background-color golder
+    margin 0 20px
 
-.app
-  display flex
-  flex-direction column
-  align-items center
-  user-select none
-  &.sample
-    filter blur(2px)
-  & .icon
-    position relative
-    width 45px
-    height 45px
-    //border-radius 10px
-    & .image
-      position: absolute
-      top 0
-      left 0
-      right 0
-      bottom 0
-      background-size contain
-      background-repeat no-repeat
-      &.placeholder
-        background-image url(../assets/icon.png)
-
-  .title
-    margin-top 5px
-    font-size 10px
-    font-weight 600
-    color whitesmoke
+.preview
+  margin 0 auto
 
 .slide-fade-enter-active
 .slide-fade-leave-active
@@ -282,24 +211,4 @@ golder = #fff900
 .slide-fade-enter-to, .slide-fade-leave
   max-height 150px
 
-.preview
-  flex 1
-  .device-wrapper
-    margin 0 auto
-  .screen
-    pointer-events initial
-    background-size contain
-    background url(../assets/mbg.jpeg) round
-    display flex
-    align-items center
-    justify-content center
-  .status-bar
-    background-size contain
-    background-repeat no-repeat
-    background-image url(../assets/status-bar.png)
-    position absolute
-    top 0
-    right 0
-    height 30px
-    width 65px
 </style>
