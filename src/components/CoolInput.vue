@@ -69,9 +69,11 @@ input
   border 0
   padding 0 0 4px
   border-bottom 1px solid #ccc
+  border-radius 0
   background-color transparent
   font-size inherit
   color currentColor
+  margin 0
 
   ~ .border
     position absolute
