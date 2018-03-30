@@ -59,11 +59,21 @@ export default {
     icon: '',
     generating: false,
     apkUrl: '',
+    waitLoad: null,
   }),
   components: {
     CoolInput
   },
+  created() {
+    this.waitLoad = new Promise(this.preload)
+  },
   methods: {
+    preload(resolve) {
+      fetch(this.backUrl + '/api/')
+        .then(resolve)
+        .catch(() => setTimeout(() => this.preload(resolve), 2000))
+    },
+
     createApp() {
       this.wait = true
       this.generating = true
@@ -123,13 +133,15 @@ export default {
         this.site = 'https://' + this.site
       try {
         new URL(this.site)
-      } catch {
+      }
+      catch(_){
         this.error = 'Неправильный адрес сайта!'
         return
       }
       this.wait = true
 
-      fetch(this.backUrl + '/api/scrape', {method: 'POST', body: this.site})
+      this.waitLoad
+        .then(() => fetch(this.backUrl + '/api/scrape', {method: 'POST', body: this.site}))
         .then(t => t.json())
         .then(json => {
           this.appPk = json.id
