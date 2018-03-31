@@ -1,36 +1,41 @@
 <template lang="pug">
-.root(':class'="{mobile}")
+.root(:class="{mobile}")
   .desc
-    h1(v-if="apkUrl") Готово!
-    h1(v-else-if="generating") Пару минут, приложение создается...
-    m-app(v-else-if="mobile && !wait && canProcess" ':blur'="blur" :icon="icon" :app-name="appName")
-    h1(v-else) Преврати свой сайт<br/>в приложение
+    transition(name="slide-fade")
+      m-app.app(
+        v-if="mobile && (state === 'pregen' || state === 'wait1')"
+        :blur="state === 'wait1'"
+        :icon="icon"
+        :app-name="appName"
+      )
+    transition(name="slide-fade")
+      h1.app(v-if="state === 'done'") Готово!
+      div.app(v-else-if="mobile && (state === 'pregen' || state === 'wait1')")
+      h1.app(v-else-if="state === 'wait2'") Приложение создается...
+      h1.app(v-else) Преврати свой сайт в приложение
     cool-input.inp(
       placeholder="Адрес сайта"
       v-model="site"
-      ':autofocus'="!mobile"
-      ':readonly'="wait"
-      ':error'="error"
-      ':spinner'="wait"
-      '@submit'="process"
+      :autofocus="!mobile"
+      :error="error"
+      :readonly="state.startsWith('wait')"
+      :spinner="state.startsWith('wait')"
+      @submit="pregen"
     )
-    my-button(
-      primary
-      v-if = "!wait && !canProcess && !apkUrl"
-      ':style'="{visibility: site ? 'visible' : 'hidden'}"
-      '@click'="process"
-    )
-      | Продолжить
     transition(name="slide-fade")
-      .additional(v-if="!wait && canProcess")
+      .button.prime(v-if="state === 'start'" :style="{visibility: site ? 'visible' : 'hidden'}")
+        my-button(primary @click="pregen") Продолжить
+    transition(name="slide-fade")
+      .edit(v-if="state === 'pregen'")
         cool-input.inp(placeholder="Название приложения" v-model="appName" :max-len="30")
-        my-button(file name="icon" '@change'="onFileChange") Загрузить другую иконку
-        my-button(primary '@click'="createApp") Создать приложение!
+        my-button.button(file name="icon" @change="onFileChange") Загрузить другую иконку
+        my-button.button.prime(primary @click="createApp") Создать приложение!
     transition(name="slide-fade")
-      a(v-if="apkUrl" download ':href'="apkUrl")
-        my-button(primary) Скачать приложение
+      .button.prime(v-if="state === 'done'")
+        a(download :href="apkUrl")
+          my-button(primary) Скачать приложение
   my-phone.preview(v-if="!mobile")
-    m-app(':blur'="blur" :icon="icon" :app-name="appName")
+    m-app(:blur="state === 'start' || state === 'wait1'" :icon="icon" :app-name="appName")
 </template>
 
 <script>
@@ -44,16 +49,14 @@ export default {
     backUrl: String,
   },
   data: () => ({
+    waitLoad: null,
     site: '',
     error: '',
-    wait: false,
-    canProcess: false,
     appName: '',
     appPk: null,
     icon: '',
-    generating: false,
     apkUrl: '',
-    waitLoad: null,
+    state: 'start',
   }),
   components: {
     CoolInput,
@@ -64,9 +67,13 @@ export default {
   created() {
     this.waitLoad = new Promise(this.preload)
   },
-  computed: {
-    blur() {
-      return !this.canProcess && !this.generating && !this.apkUrl
+  watch: {
+    site() {
+      if (this.state !== 'start') {
+        const el = document.activeElement
+        this.state = 'start'
+        setTimeout(() => el.focus(), 100)
+      }
     }
   },
   methods: {
@@ -77,20 +84,20 @@ export default {
     },
 
     createApp() {
-      this.wait = true
-      this.generating = true
+      this.state = 'wait2'
+
       let form = new FormData()
       form.append('name', this.appName)
       form.append('color', '#FFFFFF')
-      fetch(this.backUrl + `/api/app/${this.appPk}`, { method: 'POST', body: form })
+
+      fetch(`${this.backUrl}/api/app/${this.appPk}`, { method: 'POST', body: form })
         .then(() => this.check())
-        .catch(() =>
+        .catch(() => {
+          this.state = 'pregen'
           this.error = 'Неверные данные!'
-        )
+        })
         .then(url => {
-          this.wait = false
-          this.generating = false
-          this.canProcess = false
+          this.state = 'done'
           this.apkUrl = url
         })
     },
@@ -98,7 +105,7 @@ export default {
     check() {
       return new Promise((resolve) => {
         setTimeout(() => {
-          fetch(this.backUrl + `/api/app/${this.appPk}`)
+          fetch(`${this.backUrl}/api/app/${this.appPk}`)
             .then(t => t.json())
             .then(json => {
               if (json.app === 200)
@@ -118,19 +125,19 @@ export default {
 
       let form = new FormData()
       form.append('icon', icon)
-      fetch(this.backUrl + `/api/app/${this.appPk}/icon`, { method: 'POST', body: form })
+      fetch(`${this.backUrl}/api/app/${this.appPk}/icon`, { method: 'POST', body: form })
         .then(t => t.json())
         .then(json => {
           if (json.error)
             this.error = "Неправильная иконка!"
+          else
+            this.error = ''
           this.icon = json.icon
         })
     },
 
-    process() {
-      this.canProcess = false
-      this.error = ''
-      this.apkUrl = ''
+    pregen() {
+      this.state = 'wait1'
       if (!/^https?:\/\//.test(this.site))
         this.site = 'https://' + this.site
       try {
@@ -138,25 +145,23 @@ export default {
       }
       catch(_){
         this.error = 'Неправильный адрес сайта!'
+        this.state = 'start'
         return
       }
-      this.wait = true
 
       this.waitLoad
-        .then(() => fetch(this.backUrl + '/api/scrape', {method: 'POST', body: this.site}))
+        .then(() => fetch(`${this.backUrl}/api/scrape`, {method: 'POST', body: this.site}))
         .then(t => t.json())
         .then(json => {
           this.appPk = json.id
           this.appName = json.name
           this.icon = json.icon
-          this.canProcess = true
           document.activeElement.blur()
+          this.state = 'pregen'
         })
-        .catch(() =>
+        .catch(() => {
           this.error = 'Нет такого сайта!'
-        )
-        .then(() => {
-          this.wait = false
+          this.state = 'start'
         })
     }
   },
@@ -196,19 +201,41 @@ export default {
   &.mobile .desc
     text-align center
     margin 0 20px
+    flex 1
 
 .preview
   margin 0 auto
 
 .slide-fade-enter-active
 .slide-fade-leave-active
-  transition all 0.5s ease-out
+  transition all .5s ease-out
 
-.slide-fade-enter, .slide-fade-leave-to
+.slide-fade-enter
+.slide-fade-leave-to
   max-height 0
   opacity 0
+  margin-top 0
 
-.slide-fade-enter-to, .slide-fade-leave
-  max-height 150px
+.slide-fade-enter-to
+.slide-fade-leave
+  opacity 1
 
+  &.button
+    max-height 45px
+
+  &.edit
+    max-height 215px
+
+  &.app
+    max-height 70px
+
+  &.button
+    margin-top 20px
+    &.prime
+      margin-top 40px
+
+.button:not(.slide-fade-enter-active):not(.slide-fade-leave-active)
+  margin-top 20px
+  &.prime
+    margin-top 40px
 </style>

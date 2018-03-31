@@ -1,6 +1,6 @@
 <template lang="pug">
   label.my-button(v-if="file" :class="{primary}")
-    input(type="file" ':name'="name" v-on="$listeners")
+    input(type="file" :name="name" v-on="$listeners")
     span
       slot
   button.my-button(v-else v-on="$listeners" :class="{primary}")
@@ -43,14 +43,12 @@ golder = #fff900
   &.primary
     background-color gold
     color black
-    margin-top 40px
     &:hover
       opacity .85
 
   &:not(.primary)
     background-color transparent
     color gold
-    margin-top 20px
     &:hover
       border-color gold
       background-color gold

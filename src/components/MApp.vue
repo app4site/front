@@ -1,9 +1,9 @@
 <template lang="pug">
-  .m-app(':class'="{blur}")
+  .m-app(:class="{blur}")
     .icon
       .image(
-        ':class'="{placeholder: !icon}"
-        ':style'="{backgroundImage: icon && `url(${icon})`}"
+        :class="{placeholder: !icon}"
+        :style="{backgroundImage: icon && `url(${icon})`}"
       )
     .title {{appName || 'Cool App!'}}
 

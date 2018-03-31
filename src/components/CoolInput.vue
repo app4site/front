@@ -1,14 +1,14 @@
 <template lang="pug">
-  .cool-input(':class'="{spinner}")
+  .cool-input(:class="{spinner}")
     input(
       placeholder=" "
-      ':class'="{error}"
-      ':autofocus'="alwaysFocus || autofocus"
-      ':value'="value"
-      ':readonly'="readonly"
-      '@input'="$emit('input', $event.target.value.slice(0, maxLen || Infinity))"
-      '@keyup.enter'="!readonly && $emit('submit')"
-      '@blur'="blur"
+      :class="{error}"
+      :autofocus="alwaysFocus || autofocus"
+      :value="value"
+      :readonly="readonly"
+      @input="$emit('input', $event.target.value.slice(0, maxLen || Infinity))"
+      @keyup.enter="!readonly && $emit('submit')"
+      @blur="blur"
     )
     label {{error || placeholder}}
     span.border
