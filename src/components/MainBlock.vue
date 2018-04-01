@@ -11,8 +11,10 @@
     transition(name="slide-fade")
       h1.app(v-if="state === 'done'") Готово!
       div.app(v-else-if="mobile && (state === 'pregen' || state === 'wait1')")
-      h1.app(v-else-if="state === 'wait2'") Приложение создается...
-      h1.app(v-else) Преврати свой сайт в приложение
+      .app(v-else-if="state === 'wait2'")
+        h1 Приложение создается...
+        span Это займет пару минут
+      h1.app(v-else) Создай бесплатное приложение для сайта прямо сейчас
     cool-input.inp(
       placeholder="Адрес сайта"
       v-model="site"
