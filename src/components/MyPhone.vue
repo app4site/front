@@ -1,9 +1,7 @@
 <template lang="pug">
-  .device-wrapper
-    .device(data-device="Pixel" data-orientation="portrait" data-color="black")
-      .screen
-        .status-bar
-        slot
+.device
+  .wrapper
+    slot
 </template>
 
 <script>
@@ -11,21 +9,20 @@
 </script>
 
 <style scoped lang="stylus">
-@import url('~html5-device-mockups/dist/device-mockups.min.css')
-.screen
-  pointer-events initial
-  background-size contain
-  background url(../assets/mbg.jpeg) round
-  display flex
-  align-items center
-  justify-content center
-.status-bar
-  background-size contain
+.device
+  position relative
+  width 280px
+  height 618px
+  background-image url(../assets/phone.png)
   background-repeat no-repeat
-  background-image url(../assets/status-bar.png)
-  position absolute
-  top 0
-  right 0
-  height 30px
-  width 65px
+  background-size contain
+  .wrapper
+    position absolute
+    top 0
+    left 0
+    height 100%
+    width 100%
+    display flex
+    align-items center
+    justify-content center
 </style>
