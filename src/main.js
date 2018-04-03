@@ -25,7 +25,7 @@ let app = new Vue({
   render: function(h) {
     return h(MainBlock, {
       props: {
-        backUrl: 'https://app4site.herokuapp.com'
+        backUrl: 'https://api.app4.site'
         //backUrl: 'http://localhost:8000'
       }
     })

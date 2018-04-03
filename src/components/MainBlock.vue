@@ -51,7 +51,6 @@ export default {
     backUrl: String,
   },
   data: () => ({
-    waitLoad: null,
     site: '',
     error: '',
     appName: '',
@@ -66,9 +65,6 @@ export default {
     MyButton,
     MApp,
   },
-  created() {
-    this.waitLoad = new Promise(this.preload)
-  },
   watch: {
     site() {
       if (this.state !== 'start') {
@@ -79,12 +75,6 @@ export default {
     }
   },
   methods: {
-    preload(resolve) {
-      fetch(this.backUrl + '/api/')
-        .then(resolve)
-        .catch(() => setTimeout(() => this.preload(resolve), 2000))
-    },
-
     createApp() {
       this.state = 'wait2'
 
@@ -115,7 +105,7 @@ export default {
               else
                 resolve(this.check())
             })
-        }, 1500)
+        }, 2000)
       })
     },
 
@@ -151,8 +141,7 @@ export default {
         return
       }
 
-      this.waitLoad
-        .then(() => fetch(`${this.backUrl}/api/scrape`, {method: 'POST', body: this.site}))
+      fetch(`${this.backUrl}/api/scrape`, {method: 'POST', body: this.site})
         .then(t => t.json())
         .then(json => {
           this.appPk = json.id
