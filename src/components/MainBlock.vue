@@ -67,6 +67,7 @@ export default {
   },
   watch: {
     site() {
+      this.error = ''
       if (this.state !== 'start') {
         const el = document.activeElement
         this.state = 'start'
@@ -144,6 +145,7 @@ export default {
       fetch(`${this.backUrl}/api/scrape`, {method: 'POST', body: this.site})
         .then(t => t.json())
         .then(json => {
+          this.error = ''
           this.appPk = json.id
           this.appName = json.name
           this.icon = json.icon
