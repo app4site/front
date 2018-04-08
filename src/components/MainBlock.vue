@@ -35,7 +35,7 @@
     transition(name="slide-fade")
       .button.prime(v-if="state === 'done'")
         a(download :href="apkUrl")
-          my-button(primary) Скачать приложение
+          my-button(primary @click="download") Скачать приложение
   my-phone.preview(v-if="!mobile")
     m-app(:blur="state === 'start' || state === 'wait1'" :icon="icon" :app-name="appName")
 </template>
@@ -76,7 +76,18 @@ export default {
     }
   },
   methods: {
+    reach(id) {
+      if (!window.yaCounter48187421)
+        return
+      window.yaCounter48187421.reachGoal(id)
+    },
+
+    download() {
+      this.reach('download')
+    },
+
     createApp() {
+      this.reach('create')
       this.state = 'wait2'
 
       let form = new FormData()
@@ -130,6 +141,7 @@ export default {
     },
 
     pregen() {
+      this.reach('pregen')
       this.state = 'wait1'
       if (!/^https?:\/\//.test(this.site))
         this.site = 'https://' + this.site
