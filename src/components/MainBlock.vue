@@ -68,7 +68,7 @@ export default {
   watch: {
     site() {
       this.error = ''
-      if (this.state !== 'start') {
+      if (this.state !== 'start' && this.state !== 'wait1') {
         const el = document.activeElement
         this.state = 'start'
         setTimeout(() => el.focus(), 100)
@@ -143,27 +143,17 @@ export default {
     pregen() {
       this.reach('pregen')
       this.state = 'wait1'
-      if (!/^https?:\/\//.test(this.site))
-        this.site = 'https://' + this.site
-      try {
-        new URL(this.site)
-      }
-      catch(_){
-        this.error = 'Неправильный адрес сайта!'
-        this.state = 'start'
-        return
-      }
-
       fetch(`${this.backUrl}/api/scrape`, {method: 'POST', body: this.site})
         .then(t => t.json())
         .then(json => {
-          this.error = ''
+          this.site = json.url
+          this.error = json.error
           this.appPk = json.id
           this.appName = json.name
           this.icon = json.icon
           document.activeElement.blur()
-          this.state = 'pregen'
         })
+        .then(() => this.state = 'pregen')
         .catch(() => {
           this.error = 'Нет такого сайта!'
           this.state = 'start'
