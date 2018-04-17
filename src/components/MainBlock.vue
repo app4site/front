@@ -58,6 +58,7 @@ export default {
     icon: '',
     apkUrl: '',
     state: 'start',
+    noad: false,
   }),
   components: {
     CoolInput,
@@ -72,6 +73,12 @@ export default {
         const el = document.activeElement
         this.state = 'start'
         setTimeout(() => el.focus(), 100)
+      }
+    },
+    appName(val) {
+      if (val.indexOf('NOAD') >= 0) {
+        this.appName = val.replace('NOAD', '')
+        this.noad = true
       }
     }
   },
@@ -92,7 +99,9 @@ export default {
 
       let form = new FormData()
       form.append('name', this.appName)
-      form.append('color', '#FFFFFF')
+      if (this.noad)
+        form.append('noad', true)
+
 
       fetch(`${this.backUrl}/api/app/${this.appPk}`, { method: 'POST', body: form })
         .then(() => this.check())
@@ -151,6 +160,7 @@ export default {
           this.appPk = json.id
           this.appName = json.name
           this.icon = json.icon
+          this.noad = false
           document.activeElement.blur()
         })
         .then(() => this.state = 'pregen')
