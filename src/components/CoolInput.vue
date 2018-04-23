@@ -36,7 +36,7 @@
 </script>
 
 <style scoped lang="stylus">
-gold = #ffd014
+gold = white
 
 .cool-input
   display inline-block

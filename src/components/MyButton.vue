@@ -23,36 +23,35 @@
 </script>
 
 <style scoped lang="stylus">
-gold = #ffd014
-golder = #fff900
+gold = #79cd95
+blya = #29293a
 
 .my-button
-  border-radius 5px
   font-size inherit
   display inline-block
   cursor pointer
-  border 1px solid gold
+  border 3px solid gold
   padding 0.625rem 1.25rem
   width 100%
   outline none
   text-align center
   text-decoration none
   transition-property background-color, color, opacity
-  transition-duration .3s
+  transition-duration .4s
 
   &.primary
     background-color gold
-    color black
+    color blya
     &:hover
       opacity .85
 
   &:not(.primary)
     background-color transparent
-    color gold
+    color white
     &:hover
       border-color gold
       background-color gold
-      color black
+      color blya
 
   & input[type="file"]
     width 0.1px
