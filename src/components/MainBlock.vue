@@ -22,11 +22,11 @@
       :error="error"
       :readonly="state.startsWith('wait')"
       :spinner="state.startsWith('wait')"
-      @submit="pregen"
+      @submit="pregen()"
     )
     transition(name="slide-fade")
       .button.prime(v-if="state === 'start'" :style="{visibility: site ? 'visible' : 'hidden'}")
-        my-button(primary @click="pregen") Продолжить
+        my-button(primary @click="pregen()") Продолжить
     transition(name="slide-fade")
       .edit(v-if="state === 'pregen'")
         cool-input.inp(placeholder="Название приложения" v-model="appName" :max-len="30")
@@ -46,6 +46,15 @@ import MyPhone from './MyPhone'
 import MyButton from './MyButton'
 import MApp from './MApp'
 
+function findGetParameter(parameterName) {
+  let items = location.search.substr(1).split("&")
+  for (let index = 0; index < items.length; index++) {
+    let tmp = items[index].split("=")
+    if (tmp[0] === parameterName)
+      return decodeURIComponent(tmp[1])
+  }
+}
+
 export default {
   props: {
     backUrl: String,
@@ -58,7 +67,6 @@ export default {
     icon: '',
     apkUrl: '',
     state: 'start',
-    noad: false,
   }),
   components: {
     CoolInput,
@@ -66,21 +74,20 @@ export default {
     MyButton,
     MApp,
   },
+  created() {
+    let id = findGetParameter('id')
+    if (id)
+      this.pregen(id)
+  },
   watch: {
     site() {
       this.error = ''
-      if (this.state !== 'start' && this.state !== 'wait1') {
+      if (this.state === 'done') {
         const el = document.activeElement
         this.state = 'start'
         setTimeout(() => el.focus(), 100)
       }
     },
-    appName(val) {
-      if (val.indexOf('NOAD') >= 0) {
-        this.appName = val.replace('NOAD', '')
-        this.noad = true
-      }
-    }
   },
   methods: {
     reach(id) {
@@ -99,9 +106,7 @@ export default {
 
       let form = new FormData()
       form.append('name', this.appName)
-      if (this.noad)
-        form.append('noad', true)
-
+      form.append('final_url', this.site)
 
       fetch(`${this.backUrl}/api/app/${this.appPk}`, { method: 'POST', body: form })
         .then(() => this.check())
@@ -111,7 +116,7 @@ export default {
         })
         .then(url => {
           this.state = 'done'
-          this.apkUrl = url
+          this.apkUrl = new URL(url, this.backUrl).toString()
         })
     },
 
@@ -145,22 +150,25 @@ export default {
             this.error = "Неправильная иконка!"
           else
             this.error = ''
-          this.icon = json.icon
+          this.icon = new URL(json.icon, this.backUrl).toString()
         })
     },
 
-    pregen() {
-      this.reach('pregen')
+    pregen(id=null) {
+      if (!id)
+        this.reach('pregen')
       this.state = 'wait1'
-      fetch(`${this.backUrl}/api/scrape`, {method: 'POST', body: this.site})
-        .then(t => t.json())
+      const p = id
+        ? fetch(`${this.backUrl}/api/app/${id}`, {method: 'GET'})
+        : fetch(`${this.backUrl}/api/scrape`, {method: 'POST', body: this.site})
+
+      p.then(t => t.json())
         .then(json => {
           this.site = json.url
           this.error = json.error
           this.appPk = json.id
           this.appName = json.name
-          this.icon = json.icon
-          this.noad = false
+          this.icon = new URL(json.icon, this.backUrl).toString()
           document.activeElement.blur()
         })
         .then(() => this.state = 'pregen')
