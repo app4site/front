@@ -9,14 +9,14 @@
         :app-name="appName"
       )
     transition(name="slide-fade")
-      h1.app(v-if="state === 'done'") Готово!
+      h1.app(v-if="state === 'done'") Done!
       div.app(v-else-if="mobile && (state === 'pregen' || state === 'wait1')")
       .app(v-else-if="state === 'wait2'")
-        h1 Приложение создается...
-        span Это займет пару минут
-      h1.app(v-else) Создай бесплатное приложение для сайта прямо сейчас
+        h1 Creating the app...
+        span Wait a few minutes
+      h1.app(v-else) Create a free website app right now
     cool-input.inp(
-      placeholder="Адрес сайта"
+      placeholder="Site address"
       v-model="site"
       :autofocus="!mobile"
       :error="error"
@@ -26,16 +26,16 @@
     )
     transition(name="slide-fade")
       .button.prime(v-if="state === 'start'" :style="{visibility: site ? 'visible' : 'hidden'}")
-        my-button(primary @click="pregen()") Продолжить
+        my-button(primary @click="pregen()") Continue
     transition(name="slide-fade")
       .edit(v-if="state === 'pregen'")
-        cool-input.inp(placeholder="Название приложения" v-model="appName" :max-len="30")
-        my-button.button(file name="icon" @change="onFileChange") Загрузить другую иконку
-        my-button.button.prime(primary @click="createApp") Создать приложение!
+        cool-input.inp(placeholder="App name" v-model="appName" :max-len="30")
+        my-button.button(file name="icon" @change="onFileChange") Upload another icon
+        my-button.button.prime(primary @click="createApp") Create the app!
     transition(name="slide-fade")
       .button.prime(v-if="state === 'done'")
         a(download :href="apkUrl")
-          my-button(primary @click="download") Скачать приложение
+          my-button(primary @click="download") Download app
   my-phone.preview(v-if="!mobile")
     m-app(:blur="state === 'start' || state === 'wait1'" :icon="icon" :app-name="appName")
 </template>
@@ -112,7 +112,7 @@ export default {
         .then(() => this.check())
         .catch(() => {
           this.state = 'pregen'
-          this.error = 'Неверные данные!'
+          this.error = 'Wrong data!'
         })
         .then(url => {
           this.state = 'done'
@@ -147,7 +147,7 @@ export default {
         .then(t => t.json())
         .then(json => {
           if (json.error)
-            this.error = "Неправильная иконка!"
+            this.error = "Wrong icon!"
           else
             this.error = ''
           this.icon = new URL(json.icon, this.backUrl).toString()
@@ -173,7 +173,7 @@ export default {
         })
         .then(() => this.state = 'pregen')
         .catch(() => {
-          this.error = 'Нет такого сайта!'
+          this.error = 'There is no such site!'
           this.state = 'start'
         })
     }
