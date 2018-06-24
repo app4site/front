@@ -14,7 +14,7 @@
       .app(v-else-if="state === 'wait2'")
         h1 Приложение создается...
         span Это займет пару минут
-      h1.app(v-else) Создай бесплатное приложение для сайта прямо сейчас
+      h1.app(v-else) Создание приложения
     cool-input.inp(
       placeholder="Адрес сайта"
       v-model="site"
